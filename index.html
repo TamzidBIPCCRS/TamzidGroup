@@ -3,307 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Accounts Pro - Sectional Print</title>
+    <title>Business Pro - Financial Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap');
         body { font-family: 'Hind Siliguri', sans-serif; background-color: #f1f5f9; }
-        .taka::before { content: "৳ "; }
-        
-        @media print {
-            .no-print { display: none !important; }
-            .print-area { display: block !important; width: 100% !important; padding: 15px !important; }
-            table { width: 100% !important; border-collapse: collapse !important; margin-bottom: 20px; }
-            th, td { border: 1px solid #000 !important; padding: 8px !important; font-size: 12px; }
-            .print-header { display: block !important; text-align: center !important; margin-bottom: 20px; }
-        }
+        .card-income { background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; }
+        .card-expense { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; }
+        .card-balance { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; }
+        @media print { .no-print { display: none !important; } .print-header { display: block !important; text-align: center; } }
+        .print-header { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="loginPage" class="flex items-center justify-center min-h-screen no-print">
-        <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border">
-            <h2 class="text-2xl font-bold text-center mb-6 text-indigo-700">অ্যাকাউন্টস লগইন</h2>
-            <input type="tel" id="userPhone" placeholder="মোবাইল নাম্বার দিন" class="w-full p-4 border rounded-2xl mb-4 outline-none focus:ring-2 focus:ring-indigo-500">
-            <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition">প্রবেশ করুন</button>
+    <div id="loader" class="hidden fixed inset-0 bg-black/70 z-50 flex flex-col items-center justify-center text-white">
+        <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-white mb-2"></div>
+        <p>ডাটা লোড হচ্ছে...</p>
+    </div>
+
+    <div id="loginPage" class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-sm border text-center">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">অ্যাডমিন লগইন</h2>
+            <input type="tel" id="userPhone" placeholder="মোবাইল নাম্বার" class="w-full p-4 border rounded-2xl mb-4 text-center text-lg outline-none">
+            <button onclick="handleLogin()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl">প্রবেশ করুন</button>
         </div>
     </div>
 
-    <div id="appPage" class="hidden min-h-screen p-4 md:p-8 max-w-7xl mx-auto">
-        
-        <div class="flex flex-col md:flex-row justify-between items-center mb-6 bg-white p-5 rounded-2xl shadow-sm border no-print gap-4">
-            <div class="flex items-center gap-4">
-                <span class="font-bold text-gray-600">কোম্পানি ফিল্টার:</span>
-                <select id="globalFilter" onchange="renderAll()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold outline-none cursor-pointer text-sm">
-                    <option value="All">সকল কোম্পানির ডাটা</option>
+    <div id="appPage" class="hidden min-h-screen p-4 md:p-6 max-w-6xl mx-auto">
+        <div class="print-header"><h1 class="text-2xl font-bold">আয়-ব্যয় রিপোর্ট</h1><p id="printCompName"></p></div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border mb-6 no-print flex flex-wrap items-center justify-between gap-4">
+            <div class="flex gap-3 items-center">
+                <select id="globalFilter" onchange="renderAll()" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-sm">
+                    <option value="All">সকল কোম্পানি</option>
                     <option value="বাংলাদেশ ইনসুলেশন">বাংলাদেশ ইনসুলেশন</option>
                     <option value="ক্রিস্টাল কোল্ড রুম">ক্রিস্টাল কোল্ড রুম</option>
                 </select>
+                <button onclick="syncData()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold">সিঙ্ক ডাটা</button>
             </div>
-            <button onclick="handleLogout()" class="text-red-500 font-bold px-4 py-2 border border-red-100 rounded-xl hover:bg-red-50">লগআউট</button>
+            <button onclick="handleLogout()" class="text-red-500 font-bold text-sm">লগআউট</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 no-print">
-            <div class="bg-white p-5 rounded-2xl border-l-8 border-blue-600 shadow-sm">
-                <h2 class="font-bold text-blue-600 mb-3">বাংলাদেশ ইনসুলেশন (BI)</h2>
-                <div class="grid grid-cols-3 gap-2 text-center">
-                    <div class="bg-blue-50 p-2 rounded-lg"><p class="text-[10px]">আয়</p><p id="biInc" class="font-bold text-green-600 taka text-sm">0</p></div>
-                    <div class="bg-blue-50 p-2 rounded-lg"><p class="text-[10px]">ব্যয়</p><p id="biExp" class="font-bold text-red-500 taka text-sm">0</p></div>
-                    <div class="bg-blue-50 p-2 rounded-lg"><p class="text-[10px]">বাকি</p><p id="biDue" class="font-bold text-orange-600 taka text-sm">0</p></div>
-                </div>
-            </div>
-            <div class="bg-white p-5 rounded-2xl border-l-8 border-cyan-500 shadow-sm">
-                <h2 class="font-bold text-cyan-600 mb-3">ক্রিস্টাল কোল্ড রুম (CCR)</h2>
-                <div class="grid grid-cols-3 gap-2 text-center">
-                    <div class="bg-cyan-50 p-2 rounded-lg"><p class="text-[10px]">আয়</p><p id="ccInc" class="font-bold text-green-600 taka text-sm">0</p></div>
-                    <div class="bg-cyan-50 p-2 rounded-lg"><p class="text-[10px]">ব্যয়</p><p id="ccExp" class="font-bold text-red-500 taka text-sm">0</p></div>
-                    <div class="bg-cyan-50 p-2 rounded-lg"><p class="text-[10px]">বাকি</p><p id="ccDue" class="font-bold text-orange-600 taka text-sm">0</p></div>
-                </div>
-            </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div class="card-income p-6 rounded-3xl shadow-lg"><p class="text-sm">মোট আয়</p><h3 id="cardInc" class="text-2xl font-bold">৳ 0</h3></div>
+            <div class="card-expense p-6 rounded-3xl shadow-lg"><p class="text-sm">মোট ব্যয়</p><h3 id="cardExp" class="text-2xl font-bold">৳ 0</h3></div>
+            <div class="card-balance p-6 rounded-3xl shadow-lg"><p class="text-sm">ব্যালেন্স</p><h3 id="cardBal" class="text-2xl font-bold">৳ 0</h3></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="space-y-6 no-print">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-indigo-100">
-                    <h3 class="font-bold text-indigo-700 mb-4 border-b pb-2">নতুন মার্কেটিং অর্ডার</h3>
-                    <form id="orderForm" class="space-y-3">
-                        <input type="date" id="ordDate" class="w-full p-2 border rounded-lg text-sm" required>
-                        <select id="ordComp" class="w-full p-2 border rounded-lg text-sm font-bold">
-                            <option value="বাংলাদেশ ইনসুলেশন">বাংলাদেশ ইনসুলেশন</option>
-                            <option value="ক্রিস্টাল কোল্ড রুম">ক্রিস্টাল কোল্ড রুম</option>
-                        </select>
-                        <input type="text" id="clientName" placeholder="ক্লায়েন্টের নাম" class="w-full p-2 border rounded-lg text-sm" required>
-                        <input type="number" id="totalAmt" placeholder="মোট টাকা" class="w-full p-2 border rounded-lg text-sm" required>
-                        <input type="number" id="advAmt" placeholder="অ্যাডভান্স জমা" class="w-full p-2 border rounded-lg text-sm" required>
-                        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold">অর্ডার সেভ</button>
-                    </form>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-red-100">
-                    <h3 class="font-bold text-red-700 mb-4 border-b pb-2">কোম্পানি খরচ (Expense)</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-4 no-print">
+                <div class="bg-white p-6 rounded-3xl border shadow-sm sticky top-6">
+                    <h3 class="font-bold mb-4 border-b pb-2">নতুন এন্ট্রি</h3>
                     <form id="expForm" class="space-y-3">
-                        <input type="date" id="expDate" class="w-full p-2 border rounded-lg text-sm" required>
-                        <select id="expComp" class="w-full p-2 border rounded-lg text-sm font-bold">
+                        <input type="date" id="expDate" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <select id="expComp" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm font-bold">
                             <option value="বাংলাদেশ ইনসুলেশন">বাংলাদেশ ইনসুলেশন</option>
                             <option value="ক্রিস্টাল কোল্ড রুম">ক্রিস্টাল কোল্ড রুম</option>
                         </select>
-                        <select id="expCategory" class="w-full p-2 border rounded-lg text-sm font-bold bg-red-50">
-                            <option value="মার্কেটিং কনভেন্স">মার্কেটিং কনভেন্স</option>
-                            <option value="লাঞ্চ বিল">লাঞ্চ বিল</option>
-                            <option value="মোবাইল বিল">মোবাইল বিল</option>
-                            <option value="বিদ্যুৎ বিল">বিদ্যুৎ বিল</option>
-                            <option value="সার্ভিস চার্জ">সার্ভিস চার্জ</option>
-                            <option value="চার্জেস">চার্জেস</option>
-                            <option value="অন্যান্য">অন্যান্য</option>
+                        <select id="expType" onchange="updateCategories()" class="w-full p-3 bg-white border-2 border-slate-300 rounded-2xl text-sm font-bold">
+                            <option value="Income">আয় (+)</option>
+                            <option value="Expense" selected>ব্যয় (-)</option>
                         </select>
-                        <input type="number" id="expAmt" placeholder="টাকার পরিমাণ" class="w-full p-2 border rounded-lg text-sm" required>
-                        <input type="text" id="expNote" placeholder="খরচের নোট (ঐচ্ছিক)" class="w-full p-2 border rounded-lg text-sm">
-                        <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg font-bold">খরচ সেভ করুন</button>
-                    </form>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-orange-100">
-                    <h3 class="font-bold text-orange-700 mb-4 border-b pb-2">ব্যাংক ও পার্টি বকেয়া</h3>
-                    <form id="dueForm" class="space-y-3">
-                        <select id="dueType" class="w-full p-2 border rounded-lg text-sm">
-                            <option value="ব্যাংক লোন">ব্যাংক লোন</option>
-                            <option value="পার্টি বকেয়া">পার্টি বকেয়া</option>
-                        </select>
-                        <input type="text" id="dueName" placeholder="নাম দিন" class="w-full p-2 border rounded-lg text-sm" required>
-                        <input type="number" id="dueAmt" placeholder="বকেয়া পরিমাণ" class="w-full p-2 border rounded-lg text-sm" required>
-                        <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded-lg font-bold">বকেয়া যোগ করুন</button>
+                        <select id="expCategory" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm"></select>
+                        <input type="text" id="expDesc" placeholder="বিবরণ" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <input type="number" id="expAmt" placeholder="টাকার পরিমাণ" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <button type="submit" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold">সেভ করুন</button>
                     </form>
                 </div>
             </div>
 
-            <div class="lg:col-span-2 space-y-8">
-                
-                <div id="printOrders" class="bg-white p-6 rounded-2xl shadow-sm print-area">
-                    <div class="flex justify-between items-center mb-4 no-print">
-                        <h3 class="font-bold text-gray-700">মার্কেটিং অর্ডার লিস্ট</h3>
-                        <button onclick="window.print()" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-bold">প্রিন্ট</button>
-                    </div>
-                    <div class="hidden print-header">
-                        <h1 id="pOrderTitle" class="text-xl font-bold"></h1>
-                    </div>
+            <div class="lg:col-span-8">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border">
+                    <h3 class="font-bold mb-4 border-b pb-2 text-slate-800">আয়-ব্যয় স্টেটমেন্ট</h3>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th>তারিখ</th>
-                                    <th>কোম্পানি</th>
-                                    <th>ক্লায়েন্ট</th>
-                                    <th>মোট</th>
-                                    <th>বাকি</th>
-                                </tr>
-                            </thead>
-                            <tbody id="orderTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="printDebts" class="bg-white p-6 rounded-2xl shadow-sm print-area">
-                    <div class="flex justify-between items-center mb-4 no-print">
-                        <h3 class="font-bold text-gray-700">ব্যাংক ও পার্টি বকেয়া</h3>
-                        <button onclick="window.print()" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-bold">প্রিন্ট</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th>ধরণ</th>
-                                    <th>নাম</th>
-                                    <th>বকেয়া</th>
-                                    <th class="no-print">অ্যাকশন</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dueTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="printFinancial" class="bg-white p-6 rounded-2xl shadow-sm print-area">
-                    <div class="flex justify-between items-center mb-4 no-print">
-                        <h3 class="font-bold text-gray-700">ফাইনান্সিয়াল ট্রানজেকশন (আয়-ব্যয়)</h3>
-                        <button onclick="window.print()" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-bold">প্রিন্ট</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="bg-slate-800 text-white">
-                                <tr>
-                                    <th>তারিখ</th>
-                                    <th>বিবরণ ও কোম্পানি</th>
-                                    <th class="text-right">আয়</th>
-                                    <th class="text-right">ব্যয়</th>
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-800 text-white">
+                                    <th class="p-3 border">তারিখ</th>
+                                    <th class="p-3 border">বিবরণ</th>
+                                    <th class="p-3 border text-right">আয় (+)</th>
+                                    <th class="p-3 border text-right">ব্যয় (-)</th>
+                                    <th class="p-3 border no-print">X</th>
                                 </tr>
                             </thead>
                             <tbody id="mainReportBody"></tbody>
+                            <tfoot id="mainReportFoot" class="bg-slate-100 font-bold"></tfoot>
                         </table>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('biz_master_sectional_v1')) || { trans: [], orders: [], debts: [] };
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwF1Rk4TZ8uhwqputAHE3kd77sjkAyWtxDohkiySUq_Ye1CUWBRtwpai1rigbsx4_dU/exec';
+    let db = { trans: [] };
 
-    function handleLogin() {
-        if(document.getElementById('userPhone').value.length >= 11) {
-            localStorage.setItem('userAuth', 'true');
-            showApp();
-        } else alert("সঠিক মোবাইল নাম্বার দিন");
-    }
-    function handleLogout() { localStorage.removeItem('userAuth'); location.reload(); }
-    function showApp() {
-        if(localStorage.getItem('userAuth')) {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('appPage').classList.remove('hidden');
-            initDates(); renderAll();
-        }
+    const incCats = ["পার্টি পেমেন্ট", "অন্যান্য আয়"];
+    const expCats = ["মার্কেটিং বিল", "বিদ্যুত বিল", "সার্ভিস চার্জ", "ভাড়া", "ইন্টারনেট বিল", "পার্চেস", "অন্যান্য খরচ"];
+
+    function updateCategories() {
+        const type = document.getElementById('expType').value;
+        const catSelect = document.getElementById('expCategory');
+        const cats = type === 'Income' ? incCats : expCats;
+        catSelect.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
     }
 
-    function initDates() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('ordDate').value = today;
-        document.getElementById('expDate').value = today;
+    async function syncData() {
+        document.getElementById('loader').classList.remove('hidden');
+        try {
+            const res = await fetch(SCRIPT_URL);
+            const data = await res.json();
+            db.trans = data.trans || [];
+            renderAll();
+        } catch (e) { console.error(e); alert("ডাটা পাওয়া যাচ্ছে না! স্ক্রিপ্ট পারমিশন চেক করুন।"); }
+        document.getElementById('loader').classList.add('hidden');
     }
 
-    // Orders
-    document.getElementById('orderForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const oDate = document.getElementById('ordDate').value;
-        const oComp = document.getElementById('ordComp').value;
-        const oClient = document.getElementById('clientName').value;
-        const oTotal = parseFloat(document.getElementById('totalAmt').value);
-        const oAdv = parseFloat(document.getElementById('advAmt').value);
-
-        db.orders.push({ id: Date.now(), date: oDate, company: oComp, client: oClient, total: oTotal, adv: oAdv, due: oTotal - oAdv });
-        db.trans.push({ date: oDate, company: oComp, type: 'Income', amount: oAdv, desc: `অর্ডার (অ্যাডভান্স): ${oClient}` });
-        save(); e.target.reset(); initDates();
-    });
-
-    // Expense
-    document.getElementById('expForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const eDate = document.getElementById('expDate').value;
-        const eComp = document.getElementById('expComp').value;
-        const eCat = document.getElementById('expCategory').value;
-        const eAmt = parseFloat(document.getElementById('expAmt').value);
-        const eNote = document.getElementById('expNote').value;
-
-        db.trans.push({
-            date: eDate,
-            company: eComp,
-            type: 'Expense',
-            amount: eAmt,
-            desc: `[${eCat}] ${eNote}`
-        });
-        save(); e.target.reset(); initDates();
-    });
-
-    // Debt
-    document.getElementById('dueForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        db.debts.push({ 
-            id: Date.now(), 
-            type: document.getElementById('dueType').value, 
-            name: document.getElementById('dueName').value, 
-            current: parseFloat(document.getElementById('dueAmt').value) 
-        });
-        save(); e.target.reset();
-    });
-
-    function payDebt(id) {
-        const amt = parseFloat(prompt("পেমেন্ট টাকার পরিমাণ দিন:"));
-        const pDate = prompt("পেমেন্ট তারিখ (YYYY-MM-DD):", new Date().toISOString().split('T')[0]);
-        if(amt) {
-            const d = db.debts.find(item => item.id === id);
-            d.current -= amt;
-            db.trans.push({ date: pDate, company: 'বাংলাদেশ ইনসুলেশন', type: 'Expense', amount: amt, desc: `${d.type} পেমেন্ট: ${d.name}` });
-            save();
-        }
+    async function saveData() {
+        document.getElementById('loader').classList.remove('hidden');
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(db) });
+            setTimeout(syncData, 1500);
+        } catch (e) { alert("সেভ এরর!"); document.getElementById('loader').classList.add('hidden'); }
     }
-
-    function save() { localStorage.setItem('biz_master_sectional_v1', JSON.stringify(db)); renderAll(); }
 
     function renderAll() {
         const filter = document.getElementById('globalFilter').value;
-        const oBody = document.getElementById('orderTableBody');
-        const dBody = document.getElementById('dueTableBody');
+        let tInc = 0, tExp = 0;
         const mBody = document.getElementById('mainReportBody');
-        
-        oBody.innerHTML = ''; dBody.innerHTML = ''; mBody.innerHTML = '';
-        let bi = {inc:0, exp:0, due:0}, cc = {inc:0, exp:0, due:0};
+        mBody.innerHTML = '';
 
-        // Orders Table
-        db.orders.forEach(o => {
-            if(o.company === "বাংলাদেশ ইনসুলেশন") bi.due += o.due; else cc.due += o.due;
-            if(filter === 'All' || filter === o.company) {
-                oBody.innerHTML += `<tr><td>${o.date}</td><td>${o.company}</td><td>${o.client}</td><td class="taka">${o.total}</td><td class="text-red-600 font-bold taka">${o.due}</td></tr>`;
-            }
+        db.trans.filter(t => filter === 'All' || t.company === filter)
+        .sort((a,b) => new Date(b.date) - new Date(a.date)).forEach((t, idx) => {
+            const isInc = t.type === 'Income';
+            if(isInc) tInc += t.amount; else tExp += t.amount;
+            mBody.innerHTML += `<tr><td class="p-3 border text-xs">${t.date}</td><td class="p-3 border text-xs">${t.cat}: ${t.desc}</td><td class="p-3 border text-right text-green-600 font-bold">${isInc ? t.amount : '-'}</td><td class="p-3 border text-right text-red-600 font-bold">${!isInc ? t.amount : '-'}</td><td class="p-3 border no-print"><button onclick="deleteTrans(${idx})" class="text-red-400">✕</button></td></tr>`;
         });
 
-        // Debts Table
-        db.debts.forEach(d => {
-            dBody.innerHTML += `<tr><td>${d.type}</td><td class="font-bold">${d.name}</td><td class="text-red-600 font-bold taka">${d.current}</td><td class="no-print"><button onclick="payDebt(${d.id})" class="bg-indigo-600 text-white px-2 py-1 rounded text-[10px]">Payment</button></td></tr>`;
-        });
-
-        // Main Financial Table
-        db.trans.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
-            if(t.company === "বাংলাদেশ ইনসুলেশন") { if(t.type === 'Income') bi.inc += t.amount; else bi.exp += t.amount; }
-            if(t.company === "ক্রিস্টাল কোল্ড রুম") { if(t.type === 'Income') cc.inc += t.amount; else cc.exp += t.amount; }
-            
-            if(filter === 'All' || filter === t.company) {
-                mBody.innerHTML += `<tr><td>${t.date}</td><td><span class="text-[10px] block font-bold text-indigo-500">${t.company}</span>${t.desc}</td><td class="text-right text-green-600 font-bold">${t.type === 'Income' ? t.amount.toLocaleString() : '-'}</td><td class="text-right text-red-500 font-bold">${t.type === 'Expense' ? t.amount.toLocaleString() : '-'}</td></tr>`;
-            }
-        });
-
-        document.getElementById('biInc').innerText = bi.inc.toLocaleString(); document.getElementById('biExp').innerText = bi.exp.toLocaleString(); document.getElementById('biDue').innerText = bi.due.toLocaleString();
-        document.getElementById('ccInc').innerText = cc.inc.toLocaleString(); document.getElementById('ccExp').innerText = cc.exp.toLocaleString(); document.getElementById('ccDue').innerText = cc.due.toLocaleString();
+        document.getElementById('mainReportFoot').innerHTML = `<tr><td colspan="2" class="p-3 text-right">সর্বমোট:</td><td class="p-3 text-right text-green-600">৳ ${tInc}</td><td class="p-3 text-right text-red-600">৳ ${tExp}</td><td></td></tr>`;
+        document.getElementById('cardInc').innerText = '৳ ' + tInc;
+        document.getElementById('cardExp').innerText = '৳ ' + tExp;
+        document.getElementById('cardBal').innerText = '৳ ' + (tInc - tExp);
     }
 
+    document.getElementById('expForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        db.trans.push({ date: document.getElementById('expDate').value, company: document.getElementById('expComp').value, type: document.getElementById('expType').value, cat: document.getElementById('expCategory').value, desc: document.getElementById('expDesc').value, amount: parseFloat(document.getElementById('expAmt').value) });
+        saveData(); e.target.reset(); updateCategories();
+    });
+
+    function deleteTrans(idx) { if(confirm("মুছবেন?")) { db.trans.splice(idx, 1); saveData(); } }
+    function handleLogin() { if(document.getElementById('userPhone').value.length >= 11) { localStorage.setItem('logged', 'true'); showApp(); } }
+    function handleLogout() { localStorage.clear(); location.reload(); }
+    function showApp() { if(localStorage.getItem('logged')) { document.getElementById('loginPage').classList.add('hidden'); document.getElementById('appPage').classList.remove('hidden'); updateCategories(); syncData(); } }
     window.onload = showApp;
 </script>
 </body>
