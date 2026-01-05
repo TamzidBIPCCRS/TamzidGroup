@@ -11,22 +11,21 @@
         .card-income { background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; }
         .card-expense { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; }
         .card-balance { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; }
-        @media print { .no-print { display: none !important; } .print-header { display: block !important; text-align: center; } }
-        .print-header { display: none; }
+        @media print { .no-print { display: none !important; } }
     </style>
 </head>
 <body>
 
     <div id="loader" class="hidden fixed inset-0 bg-black/70 z-50 flex flex-col items-center justify-center text-white">
         <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-white mb-2"></div>
-        <p>ডাটা সিঙ্ক হচ্ছে...</p>
+        <p>ডাটা লোড হচ্ছে...</p>
     </div>
 
     <div id="loginPage" class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-sm border text-center">
             <h2 class="text-2xl font-bold mb-6 text-slate-800">অ্যাডমিন লগইন</h2>
             <input type="tel" id="userPhone" placeholder="মোবাইল নাম্বার" class="w-full p-4 border rounded-2xl mb-4 text-center text-lg outline-none">
-            <button onclick="handleLogin()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl hover:bg-black transition">প্রবেশ করুন</button>
+            <button onclick="handleLogin()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl">প্রবেশ করুন</button>
         </div>
     </div>
 
@@ -38,15 +37,15 @@
                     <option value="বাংলাদেশ ইনসুলেশন">বাংলাদেশ ইনসুলেশন</option>
                     <option value="ক্রিস্টাল কোল্ড রুম">ক্রিস্টাল কোল্ড রুম</option>
                 </select>
-                <button onclick="syncData()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold">সিঙ্ক ডাটা</button>
+                <button onclick="syncData()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md">সিঙ্ক ডাটা</button>
             </div>
             <button onclick="handleLogout()" class="text-red-500 font-bold text-sm">লগআউট</button>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div class="card-income p-6 rounded-3xl shadow-lg"><p class="text-sm">মোট আয়</p><h3 id="cardInc" class="text-2xl font-bold">৳ 0</h3></div>
-            <div class="card-expense p-6 rounded-3xl shadow-lg"><p class="text-sm">মোট ব্যয়</p><h3 id="cardExp" class="text-2xl font-bold">৳ 0</h3></div>
-            <div class="card-balance p-6 rounded-3xl shadow-lg"><p class="text-sm">ব্যালেন্স</p><h3 id="cardBal" class="text-2xl font-bold">৳ 0</h3></div>
+            <div class="card-income p-6 rounded-3xl shadow-lg"><p class="text-xs">মোট আয়</p><h3 id="cardInc" class="text-2xl font-bold">৳ 0</h3></div>
+            <div class="card-expense p-6 rounded-3xl shadow-lg"><p class="text-xs">মোট ব্যয়</p><h3 id="cardExp" class="text-2xl font-bold">৳ 0</h3></div>
+            <div class="card-balance p-6 rounded-3xl shadow-lg"><p class="text-xs">ব্যালেন্স</p><h3 id="cardBal" class="text-2xl font-bold">৳ 0</h3></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -71,29 +70,27 @@
             </div>
 
             <div class="lg:col-span-8">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-800 text-white">
-                                    <th class="p-3 border">তারিখ</th>
-                                    <th class="p-3 border">বিবরণ</th>
-                                    <th class="p-3 border text-right">আয় (+)</th>
-                                    <th class="p-3 border text-right">ব্যয় (-)</th>
-                                    <th class="p-3 border no-print">X</th>
-                                </tr>
-                            </thead>
-                            <tbody id="mainReportBody"></tbody>
-                            <tfoot id="mainReportFoot" class="bg-slate-100 font-bold"></tfoot>
-                        </table>
-                    </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border overflow-hidden">
+                    <table class="w-full text-sm text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-white">
+                                <th class="p-3 border">তারিখ</th>
+                                <th class="p-3 border">বিবরণ</th>
+                                <th class="p-3 border text-right">আয় (+)</th>
+                                <th class="p-3 border text-right">ব্যয় (-)</th>
+                                <th class="p-3 border no-print">X</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mainReportBody" class="divide-y"></tbody>
+                        <tfoot id="mainReportFoot" class="bg-slate-100 font-bold"></tfoot>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
 <script>
-    // আপনার নতুন লিঙ্ক (৫৬ নম্বর লাইন)
+    // আপনার লিঙ্ক (লাইন ৫৬)
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypghUirjjVlKKeoZS_bgLjBEq4zPIbNZrd8k1ORlkfS6AsPu2W9yezS1NuL96kh0Ka/exec';
     let db = { trans: [] };
 
@@ -110,14 +107,14 @@
     async function syncData() {
         document.getElementById('loader').classList.remove('hidden');
         try {
-            const res = await fetch(SCRIPT_URL);
-            const text = await res.text();
-            const data = JSON.parse(text);
+            // ক্যাশ এড়ানোর জন্য টাইমস্ট্যাম্প ব্যবহার করা হয়েছে
+            const res = await fetch(SCRIPT_URL + '?nocache=' + new Date().getTime());
+            const data = await res.json();
             db.trans = data.trans || [];
             renderAll();
         } catch (e) { 
-            console.error("Sync failed:", e);
-            alert("সিঙ্ক এরর! আপনার গুগল স্ক্রিপ্ট পারমিশন বা ডিপ্লয়মেন্ট চেক করুন।"); 
+            console.error("Sync Error:", e);
+            alert("সিঙ্ক এরর! পুনরায় চেষ্টা করুন অথবা স্ক্রিপ্ট পারমিশন চেক করুন।"); 
         }
         document.getElementById('loader').classList.add('hidden');
     }
@@ -130,7 +127,8 @@
                 mode: 'no-cors', 
                 body: JSON.stringify(db)
             });
-            setTimeout(syncData, 2500);
+            // ডাটা সেভ হতে সময় লাগে, তাই একটু বেশি সময় পর সিঙ্ক হবে
+            setTimeout(syncData, 3000);
         } catch (e) { alert("সেভ এরর!"); document.getElementById('loader').classList.add('hidden'); }
     }
 
@@ -144,7 +142,13 @@
         .sort((a,b) => new Date(b.date) - new Date(a.date)).forEach((t, idx) => {
             const isInc = t.type === 'Income';
             if(isInc) tInc += t.amount; else tExp += t.amount;
-            mBody.innerHTML += `<tr><td class="p-3 border text-xs">${t.date}</td><td class="p-3 border text-xs">${t.cat}: ${t.desc}</td><td class="p-3 border text-right text-green-600 font-bold">${isInc ? t.amount.toLocaleString() : '-'}</td><td class="p-3 border text-right text-red-600 font-bold">${!isInc ? t.amount.toLocaleString() : '-'}</td><td class="p-3 border no-print text-center"><button onclick="deleteTrans(${idx})" class="text-red-400 font-bold">✕</button></td></tr>`;
+            mBody.innerHTML += `<tr>
+                <td class="p-3 border text-xs font-mono">${t.date}</td>
+                <td class="p-3 border text-xs"><b>${t.cat}</b><br>${t.desc}</td>
+                <td class="p-3 border text-right text-green-600 font-bold">${isInc ? t.amount.toLocaleString() : '-'}</td>
+                <td class="p-3 border text-right text-red-600 font-bold">${!isInc ? t.amount.toLocaleString() : '-'}</td>
+                <td class="p-3 border no-print text-center"><button onclick="deleteTrans(${idx})" class="text-red-400 font-bold px-2">✕</button></td>
+            </tr>`;
         });
 
         document.getElementById('mainReportFoot').innerHTML = `<tr><td colspan="2" class="p-3 text-right">মোট:</td><td class="p-3 text-right text-green-600">৳ ${tInc.toLocaleString()}</td><td class="p-3 text-right text-red-600">৳ ${tExp.toLocaleString()}</td><td></td></tr>`;
@@ -167,9 +171,9 @@
     });
 
     function deleteTrans(idx) { if(confirm("মুছবেন?")) { db.trans.splice(idx, 1); saveData(); } }
-    function handleLogin() { if(document.getElementById('userPhone').value.length >= 11) { localStorage.setItem('logged_in', 'true'); showApp(); } }
+    function handleLogin() { if(document.getElementById('userPhone').value.length >= 11) { localStorage.setItem('biz_auth', 'true'); showApp(); } }
     function handleLogout() { localStorage.clear(); location.reload(); }
-    function showApp() { if(localStorage.getItem('logged_in')) { document.getElementById('loginPage').classList.add('hidden'); document.getElementById('appPage').classList.remove('hidden'); updateCategories(); syncData(); } }
+    function showApp() { if(localStorage.getItem('biz_auth')) { document.getElementById('loginPage').classList.add('hidden'); document.getElementById('appPage').classList.remove('hidden'); updateCategories(); syncData(); } }
     window.onload = showApp;
 </script>
 </body>
