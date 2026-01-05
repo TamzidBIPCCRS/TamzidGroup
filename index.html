@@ -19,23 +19,21 @@
 
     <div id="loader" class="hidden fixed inset-0 bg-black/70 z-50 flex flex-col items-center justify-center text-white">
         <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-white mb-2"></div>
-        <p>ডাটা লোড হচ্ছে...</p>
+        <p>ডাটা সিঙ্ক হচ্ছে...</p>
     </div>
 
     <div id="loginPage" class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-sm border text-center">
             <h2 class="text-2xl font-bold mb-6 text-slate-800">অ্যাডমিন লগইন</h2>
             <input type="tel" id="userPhone" placeholder="মোবাইল নাম্বার" class="w-full p-4 border rounded-2xl mb-4 text-center text-lg outline-none">
-            <button onclick="handleLogin()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl">প্রবেশ করুন</button>
+            <button onclick="handleLogin()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl hover:bg-black transition">প্রবেশ করুন</button>
         </div>
     </div>
 
     <div id="appPage" class="hidden min-h-screen p-4 md:p-6 max-w-6xl mx-auto">
-        <div class="print-header"><h1 class="text-2xl font-bold">আয়-ব্যয় রিপোর্ট</h1><p id="printCompName"></p></div>
-
         <div class="bg-white p-4 rounded-2xl shadow-sm border mb-6 no-print flex flex-wrap items-center justify-between gap-4">
             <div class="flex gap-3 items-center">
-                <select id="globalFilter" onchange="renderAll()" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-sm">
+                <select id="globalFilter" onchange="renderAll()" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-sm outline-none">
                     <option value="All">সকল কোম্পানি</option>
                     <option value="বাংলাদেশ ইনসুলেশন">বাংলাদেশ ইনসুলেশন</option>
                     <option value="ক্রিস্টাল কোল্ড রুম">ক্রিস্টাল কোল্ড রুম</option>
@@ -54,7 +52,6 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div class="lg:col-span-4 no-print">
                 <div class="bg-white p-6 rounded-3xl border shadow-sm sticky top-6">
-                    <h3 class="font-bold mb-4 border-b pb-2">নতুন এন্ট্রি</h3>
                     <form id="expForm" class="space-y-3">
                         <input type="date" id="expDate" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
                         <select id="expComp" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm font-bold">
@@ -75,7 +72,6 @@
 
             <div class="lg:col-span-8">
                 <div class="bg-white p-6 rounded-3xl shadow-sm border">
-                    <h3 class="font-bold mb-4 border-b pb-2 text-slate-800">আয়-ব্যয় স্টেটমেন্ট</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left border-collapse">
                             <thead>
@@ -97,7 +93,8 @@
     </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwF1Rk4TZ8uhwqputAHE3kd77sjkAyWtxDohkiySUq_Ye1CUWBRtwpai1rigbsx4_dU/exec';
+    // আপনার নতুন লিঙ্ক (৫৬ নম্বর লাইন)
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypghUirjjVlKKeoZS_bgLjBEq4zPIbNZrd8k1ORlkfS6AsPu2W9yezS1NuL96kh0Ka/exec';
     let db = { trans: [] };
 
     const incCats = ["পার্টি পেমেন্ট", "অন্যান্য আয়"];
@@ -114,18 +111,26 @@
         document.getElementById('loader').classList.remove('hidden');
         try {
             const res = await fetch(SCRIPT_URL);
-            const data = await res.json();
+            const text = await res.text();
+            const data = JSON.parse(text);
             db.trans = data.trans || [];
             renderAll();
-        } catch (e) { console.error(e); alert("ডাটা পাওয়া যাচ্ছে না! স্ক্রিপ্ট পারমিশন চেক করুন।"); }
+        } catch (e) { 
+            console.error("Sync failed:", e);
+            alert("সিঙ্ক এরর! আপনার গুগল স্ক্রিপ্ট পারমিশন বা ডিপ্লয়মেন্ট চেক করুন।"); 
+        }
         document.getElementById('loader').classList.add('hidden');
     }
 
     async function saveData() {
         document.getElementById('loader').classList.remove('hidden');
         try {
-            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(db) });
-            setTimeout(syncData, 1500);
+            await fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify(db)
+            });
+            setTimeout(syncData, 2500);
         } catch (e) { alert("সেভ এরর!"); document.getElementById('loader').classList.add('hidden'); }
     }
 
@@ -139,25 +144,32 @@
         .sort((a,b) => new Date(b.date) - new Date(a.date)).forEach((t, idx) => {
             const isInc = t.type === 'Income';
             if(isInc) tInc += t.amount; else tExp += t.amount;
-            mBody.innerHTML += `<tr><td class="p-3 border text-xs">${t.date}</td><td class="p-3 border text-xs">${t.cat}: ${t.desc}</td><td class="p-3 border text-right text-green-600 font-bold">${isInc ? t.amount : '-'}</td><td class="p-3 border text-right text-red-600 font-bold">${!isInc ? t.amount : '-'}</td><td class="p-3 border no-print"><button onclick="deleteTrans(${idx})" class="text-red-400">✕</button></td></tr>`;
+            mBody.innerHTML += `<tr><td class="p-3 border text-xs">${t.date}</td><td class="p-3 border text-xs">${t.cat}: ${t.desc}</td><td class="p-3 border text-right text-green-600 font-bold">${isInc ? t.amount.toLocaleString() : '-'}</td><td class="p-3 border text-right text-red-600 font-bold">${!isInc ? t.amount.toLocaleString() : '-'}</td><td class="p-3 border no-print text-center"><button onclick="deleteTrans(${idx})" class="text-red-400 font-bold">✕</button></td></tr>`;
         });
 
-        document.getElementById('mainReportFoot').innerHTML = `<tr><td colspan="2" class="p-3 text-right">সর্বমোট:</td><td class="p-3 text-right text-green-600">৳ ${tInc}</td><td class="p-3 text-right text-red-600">৳ ${tExp}</td><td></td></tr>`;
-        document.getElementById('cardInc').innerText = '৳ ' + tInc;
-        document.getElementById('cardExp').innerText = '৳ ' + tExp;
-        document.getElementById('cardBal').innerText = '৳ ' + (tInc - tExp);
+        document.getElementById('mainReportFoot').innerHTML = `<tr><td colspan="2" class="p-3 text-right">মোট:</td><td class="p-3 text-right text-green-600">৳ ${tInc.toLocaleString()}</td><td class="p-3 text-right text-red-600">৳ ${tExp.toLocaleString()}</td><td></td></tr>`;
+        document.getElementById('cardInc').innerText = '৳ ' + tInc.toLocaleString();
+        document.getElementById('cardExp').innerText = '৳ ' + tExp.toLocaleString();
+        document.getElementById('cardBal').innerText = '৳ ' + (tInc - tExp).toLocaleString();
     }
 
     document.getElementById('expForm').addEventListener('submit', (e) => {
         e.preventDefault();
-        db.trans.push({ date: document.getElementById('expDate').value, company: document.getElementById('expComp').value, type: document.getElementById('expType').value, cat: document.getElementById('expCategory').value, desc: document.getElementById('expDesc').value, amount: parseFloat(document.getElementById('expAmt').value) });
+        db.trans.push({ 
+            date: document.getElementById('expDate').value, 
+            company: document.getElementById('expComp').value, 
+            type: document.getElementById('expType').value, 
+            cat: document.getElementById('expCategory').value, 
+            desc: document.getElementById('expDesc').value, 
+            amount: parseFloat(document.getElementById('expAmt').value) 
+        });
         saveData(); e.target.reset(); updateCategories();
     });
 
     function deleteTrans(idx) { if(confirm("মুছবেন?")) { db.trans.splice(idx, 1); saveData(); } }
-    function handleLogin() { if(document.getElementById('userPhone').value.length >= 11) { localStorage.setItem('logged', 'true'); showApp(); } }
+    function handleLogin() { if(document.getElementById('userPhone').value.length >= 11) { localStorage.setItem('logged_in', 'true'); showApp(); } }
     function handleLogout() { localStorage.clear(); location.reload(); }
-    function showApp() { if(localStorage.getItem('logged')) { document.getElementById('loginPage').classList.add('hidden'); document.getElementById('appPage').classList.remove('hidden'); updateCategories(); syncData(); } }
+    function showApp() { if(localStorage.getItem('logged_in')) { document.getElementById('loginPage').classList.add('hidden'); document.getElementById('appPage').classList.remove('hidden'); updateCategories(); syncData(); } }
     window.onload = showApp;
 </script>
 </body>
